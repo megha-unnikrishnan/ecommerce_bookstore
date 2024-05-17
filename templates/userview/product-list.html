@@ -69,35 +69,34 @@
 
 
                           {% for i in image %}
-                            <div class="col-md-3">
-                                <div class="product-item">
-                                    <div class="product-title">
-                                      <small style="color:white">{{i.product.product_name}}</small>
-                                        <div class="rating-star">
-            <span title="{{ i.rating }}">
-            <!-- By default the star is full else it is empty otherwise it is half -->
-                <i style="color:#FF6F61" class="fa fa-star{% if i.rating < 0.5%}-o{% elif i.rating >= 0.5 and i.rating < 1 %}-half-o{% endif %}" aria-hidden="true"></i>
-                <i  style="color:#FF6F61" class="fa fa-star{% if i.rating < 1.5%}-o{% elif i.rating >= 1.5 and i.rating < 2 %}-half-o{% endif %}" aria-hidden="true"></i>
-                <i  style="color:#FF6F61" class="fa fa-star{% if i.rating < 2.5%}-o{% elif i.rating >= 2.5 and i.rating < 3 %}-half-o{% endif %}" aria-hidden="true"></i>
-                <i style="color:#FF6F61" class="fa fa-star{% if i.rating < 3.5%}-o{% elif i.rating >= 3.5 and i.rating < 4 %}-half-o{% endif %}" aria-hidden="true"></i>
-                <i style="color:#FF6F61" class="fa fa-star{% if i.rating < 4.5%}-o{% elif i.rating >= 4.5 and i.rating < 5 %}-half-o{% endif %}" aria-hidden="true"></i>
-            </span>
-            <span><strong>( {{ review.rating }}/5 )</strong></span>
+                            <div class="col-md-4 col-lg-3">
+    <div class="product-item">
+        <div class="product-title">
+            <small style="color:white">{{i.product.product_name}}</small>
+            <div class="rating-star">
+                <span title="{{ i.rating }}">
+                    <!-- By default the star is full else it is empty otherwise it is half -->
+                    <i style="color:#FF6F61" class="fa fa-star{% if i.rating < 0.5%}-o{% elif i.rating >= 0.5 and i.rating < 1 %}-half-o{% endif %}" aria-hidden="true"></i>
+                    <i style="color:#FF6F61" class="fa fa-star{% if i.rating < 1.5%}-o{% elif i.rating >= 1.5 and i.rating < 2 %}-half-o{% endif %}" aria-hidden="true"></i>
+                    <i style="color:#FF6F61" class="fa fa-star{% if i.rating < 2.5%}-o{% elif i.rating >= 2.5 and i.rating < 3 %}-half-o{% endif %}" aria-hidden="true"></i>
+                    <i style="color:#FF6F61" class="fa fa-star{% if i.rating < 3.5%}-o{% elif i.rating >= 3.5 and i.rating < 4 %}-half-o{% endif %}" aria-hidden="true"></i>
+                    <i style="color:#FF6F61" class="fa fa-star{% if i.rating < 4.5%}-o{% elif i.rating >= 4.5 and i.rating < 5 %}-half-o{% endif %}" aria-hidden="true"></i>
+                </span>
+                <span><strong>({{ i.rating }}/5)</strong></span>
+            </div>
         </div>
-                                    </div>
-                                    <div >
+        <div>
+            <a href="{% url 'productdetail' i.id %}">
+                <img src="{{i.product.product_image.url}}" class="img-fluid" style="width: 100%; height: 200px; object-fit: cover;" alt="Product Image">
+            </a>
+        </div>
+        <div class="product-price">
+            <h4 style="color:white"><i class="fas fa-rupee-sign"></i>{{i.discounted_price|floatformat:"0"}} <small><del>{{i.product_price|floatformat:"0"}}</del></small></h4>
+            <a class="btn btn-primary" href="{% url 'productdetail' i.id %}"><i class="fa fa-shopping-cart"></i> Buy Now</a>
+        </div>
+    </div>
+</div>
 
-                                             <a href="{% url 'productdetail' i.id %}">
-                                    <img src="{{i.product.product_image.url}}" width="236" height="200" alt="Product Image">
-                                </a>
-
-                                    </div>
-                                    <div class="product-price">
-                                      <h4 style="color:white"><i class="fas fa-rupee-sign"></i>{{i.discounted_price|floatformat:"0"}} <small><del>{{i.product_price|floatformat:"0"}}</del></small></h4>
-                                        <a class="btn" href=""><i class="fa fa-shopping-cart"></i>Buy Now</a>
-                                    </div>
-                                </div>
-                            </div>
                                 {% endfor %}
                         </div>
 

@@ -137,7 +137,7 @@
             {% endfor %}
             <p class="sub-total resize-text">Sub Total<span><i class="fas fa-rupee-sign"></i>{{mrp}}</span></p>
             <p class="discount resize-text">Discount<span><i class="fas fa-rupee-sign"></i>{{discount|floatformat}}</span></p>
-             <p class="discount resize-text">Category Discount<span><i class="fas fa-rupee-sign"></i>{{category_offer_amount}}</span></p>
+
             <p class="coupon resize-text">Coupon<span><i class="fas fa-rupee-sign"></i>{{coupon}}</span></p>
             <p class="tax resize-text">Tax<span><i class="fas fa-rupee-sign"></i>{{tax|floatformat}}</span></p>
             <p class="shipping resize-text">Shipping Cost<span><i class="fas fa-rupee-sign"></i>{{shipping}}</span></p>
@@ -155,8 +155,8 @@
                                             <label class="custom-control-label" for="payment-razorpay">Razorpay</label>
                                         </div>
                                         <div class="payment-content" id="payment-razorpay-show">
-                                            <p>
-                                                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras tincidunt orci ac eros volutpat maximus lacinia quis diam.
+                                            <p class="text-justify">
+                                                Razorpay is a prominent Indian fintech company that provides an extensive suite of payment solutions for businesses of all sizes. .
                                             </p>
                                         </div>
                                     </div>
@@ -166,8 +166,8 @@
                                             <label class="custom-control-label" for="payment-5">Cash on Delivery</label>
                                         </div>
                                         <div class="payment-content" id="payment-5-show">
-                                            <p>
-                                                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras tincidunt orci ac eros volutpat maximus lacinia quis diam.
+                                            <p class="text-justify">
+                                                Cash on Delivery (COD) is a payment method where customers pay for goods at the time of delivery rather than in advance.
                                             </p>
                                         </div>
                                     </div>
@@ -177,8 +177,8 @@
                                             <label class="custom-control-label" for="payment-6">Wallet</label>
                                         </div>
                                         <div class="payment-content" id="payment-6-show">
-                                            <p>
-                                                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras tincidunt orci ac eros volutpat maximus lacinia quis diam.
+                                            <p class="text-justify">
+                                                A digital wallet, often referred to simply as a "wallet," is a financial application that allows users to store, manage, and transact with digital funds securely..
                                             </p>
                                         </div>
                                     </div>
@@ -274,6 +274,14 @@
 
         if (razorpayRadio.checked) {
             // Handle Razorpay payment
+             {% for item in cart_items %}
+            if ({{ item.quantity }} > {{ item.product.stock }}) {
+            alert("Only {{item.product.stock}} left for {{item.product.variant_name}}! Please reduce the quantity in your cart or try again later..");
+            event.preventDefault(); // Prevent form submission
+            return;
+            }
+            {% endfor %}
+
             handleRazorpayPayment(event);
         } else {
             // Proceed with other payment methods

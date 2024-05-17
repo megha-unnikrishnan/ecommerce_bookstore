@@ -76,6 +76,17 @@ class UserAddress(models.Model):
     state = models.CharField(max_length=150)
     created = models.DateField(auto_now_add=True)
 
+class OrderAddress(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    name = models.CharField(max_length=150, blank=True)
+    alt_mobile = models.CharField(max_length=10, blank=True)
+    address = models.TextField()
+    town = models.CharField(max_length=150)
+    zipcode = models.IntegerField()
+    nearby_location = models.CharField(max_length=255, blank=True)
+    district = models.CharField(max_length=150)
+    state = models.CharField(max_length=150)
+    created = models.DateField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.name}"
