@@ -1,6 +1,6 @@
 from django.db import models
 
-from userapp.models import CustomUser,UserAddress
+from userapp.models import CustomUser, UserAddress, OrderAddress
 from cart.models import Coupons
 from shop.models import Bookvariant
 
@@ -30,6 +30,7 @@ class Order(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True)
     payment = models.ForeignKey(Payments, on_delete=models.SET_NULL, null=True)
     address = models.ForeignKey(UserAddress, on_delete=models.SET_NULL, null=True, blank=True)
+    order_address= models.ForeignKey(OrderAddress, on_delete=models.SET_NULL, null=True, blank=True)
     order_id = models.CharField(max_length=200, blank=True)
     subtotal = models.FloatField(blank=True)
     order_total = models.FloatField()
