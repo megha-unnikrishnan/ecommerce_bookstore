@@ -58,7 +58,7 @@
                 </tr>
                 <tr>
                     <td>{{ phone }}</td>
-                    	<td class="user">+91 {{ customer_phone }}</td>
+                    <td class="user">+91 {{ customer_phone }}</td>
 
                 </tr>
                 <tr>
@@ -121,8 +121,8 @@
     <div class="col-md-4">
         <div class="border p-3 ">
             <p>Total: <strong>Rs.</i>{{ order.subtotal }}</strong></p>
-            <p>Product Discount: <strong>Rs.{{ order.discount_amount }}</strong></p>
-            <p>Category Discount: <strong>Rs.{{ order.category_amount|floatformat:2 }}</strong></p>
+            <p> Discount: <strong>Rs.{{ order.discount_amount }}</strong></p>
+
             <p>Coupon Discount: <strong>Rs.{{ order.coupon_mount|floatformat:2 }}</strong></p>
             <p>Tax: <strong>Rs.{{ order.tax }}</strong></p>
             <p>Shipping: <strong>Rs.{{ order.shipping }}</strong></p>

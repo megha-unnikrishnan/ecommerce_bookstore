@@ -163,13 +163,53 @@ class Bookvariant(models.Model):
         return self.variant_name
 
     def discounted_price(self):
-        if self.offer:
+        discounted_price=0
+        if self.offer is not None and not self.offer.is_expired():
             discount_percent = Decimal(self.offer.off_percent)
             discount_amount = (discount_percent / Decimal(100)) * self.product_price
             discounted_price = self.product_price - discount_amount
+            if discounted_price < 0.3 * int(self.product_price):
+                return 0.3 * int(self.product_price)
             return discounted_price
+        return discounted_price
+
+
+
+    def categoryoffer(self):
+        catoffer = 0
+        if self.category.offer_cat is not None and not self.category.offer_cat.is_expired():
+            catoffer = int(self.product_price) - (int(self.product_price) * int(self.category.offer_cat.off_percent) / 100)
+            if catoffer < 0.3 * int(self.product_price):
+                return 0.3 * int(self.product_price)
+            return catoffer
+        return catoffer
+
+    def price_sub_total(self):
+        if self.discounted_price() > 0 and self.categoryoffer() > 0:
+            return min(self.discounted_price(), self.categoryoffer())
+        elif self.discounted_price() > 0:
+            return self.discounted_price()
+        elif self.categoryoffer() > 0:
+            return self.categoryoffer()
         else:
             return self.product_price
+
+    def category_name(self):
+        if self.discounted_price() > 0 and self.categoryoffer() > 0:
+
+            if self.discounted_price() < self.categoryoffer():
+                return f'Product Offer - {self.offer.off_percent}'
+            else:
+                return f'Category Offer - {self.category.offer_cat.off_percent}'
+        elif self.discounted_price() > 0:
+            return f'Product Offer - {self.offer.off_percent}'
+        elif self.categoryoffer() > 0:
+            return f'Category Offer - {self.category.offer_cat.off_percent}'
+        else:
+            return f'No offer'
+
+    def __str__(self) -> str:
+        return self.variant_name
 
 
 class MultipleImages(models.Model):

@@ -15,7 +15,7 @@ from cart.models import CartItem, Cart, Coupons
 from shop.models import Bookvariant, Wishlist
 from django.shortcuts import redirect
 from django.contrib import messages
-from userapp.models import CustomUser, UserAddress, WalletBook
+from userapp.models import CustomUser, UserAddress, WalletBook, OrderAddress
 import uuid
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -166,7 +166,9 @@ def update_cart_quantity(request):
             new_quantity = 0
             # Retrieve the cart item
 
-        if item_id_str.isdigit():
+        item_id_str = request.POST.get('item_id')
+
+        if item_id_str and item_id_str.isdigit():
             item_id = int(item_id_str)
 
             cart_item = CartItem.objects.get(id=item_id)
@@ -178,7 +180,9 @@ def update_cart_quantity(request):
 
         print('2')
         print(item_id_str)
-        if item_id_str.isdigit():
+        item_id_str = request.POST.get('item_id')
+
+        if item_id_str and item_id_str.isdigit():
             item_id = int(item_id_str)
 
             cart_item = CartItem.objects.get(id=item_id)
@@ -200,7 +204,7 @@ def update_cart_quantity(request):
                         'hide_quantity': True})
             cart_item.save()
 
-        if cart_item.product.stock < new_quantity:
+        if new_quantity > cart_item.product.stock:
             return JsonResponse({'error': 'Exceeded available stock', 'hide_quantity': True})
 
         if new_quantity != 0:
@@ -210,10 +214,10 @@ def update_cart_quantity(request):
         print('4')
         print(new_quantity)
         if new_quantity != 0:
-            sub_total = int(cart_item.product.discounted_price()) * new_quantity
+            sub_total = int(cart_item.product.price_sub_total()) * new_quantity
             print(sub_total)
         else:
-            sub_total = int(cart_item.product.discounted_price()) * cart_item.quantity
+            sub_total = int(cart_item.product.price_sub_total()) * cart_item.quantity
         # subtotal = int(cart_item.product.discounted_price()) * new_quantity
         if new_quantity != 0:
             offerpricetotal = int(cart_item.product.product_price) * new_quantity
@@ -226,7 +230,7 @@ def update_cart_quantity(request):
         user_id = CustomUser.objects.get(id=request.user.id)
         cartitem = CartItem.objects.filter(user=user_id)
 
-        total = int(sum(item.product.discounted_price() * item.quantity for item in cartitem))
+        total = sum(Decimal(item.product.price_sub_total()) * item.quantity for item in cartitem)
 
         withoutoffertotal = int(sum(item.product.product_price * item.quantity for item in cartitem))
         print(withoutoffertotal)
@@ -239,13 +243,24 @@ def update_cart_quantity(request):
 
 
 
+        # cart_obj = Cart.objects.get(id=cart_item.cart.id)
+        # cat_ofr_obj = CartItem.objects.filter(cart=cart_obj)
+        # for items in cat_ofr_obj:
+        #     if not items.product.category.offer_cat.is_expired():
+        #         category_offer_amount += items.sub_total_with_category_offer()
+        #     else:
+        #         category_offer_amount=0
+
         cart_obj = Cart.objects.get(id=cart_item.cart.id)
         cat_ofr_obj = CartItem.objects.filter(cart=cart_obj)
-        for items in cat_ofr_obj:
-            if not items.product.category.offer_cat.is_expired():
-                category_offer_amount += items.sub_total_with_category_offer()
-            else:
-                category_offer_amount=0
+        category_offer_amount = 0
+
+        # for items in cat_ofr_obj:
+        #     offer_cat = items.product.category.offer_cat
+        #     if offer_cat and not offer_cat.is_expired():
+        #         category_offer_amount += items.sub_total_with_category_offer()
+        #     else:
+        #         category_offer_amount = 0
 
         shipping_cost = 0
         if total < 3000:
@@ -270,7 +285,7 @@ def update_cart_quantity(request):
             coupon_applied = True
             message = f'Applied coupon code{cart_obj.coupon.coupon_code} successfully'
 
-            discount_amount = total * float(cart_obj.coupon.off_percent) / 100
+            discount_amount = total * int(cart_obj.coupon.off_percent) / 100
             print('discount', discount_amount)
 
             if discount_amount > cart_obj.coupon.max_discount:
@@ -380,21 +395,30 @@ def checkout_view(request, id):
 
         for item in cart_items:
             mrp += int(item.product.product_price) * item.quantity
-            offerprice += int(item.product.discounted_price()) * item.quantity
+            offerprice += int(item.product.price_sub_total()) * item.quantity
 
             discount = int(mrp - offerprice)
 
         # coupon
 
         # category
-        category_offer_amount=0
+        # category_offer_amount=0
+        # cat_ofr_obj = CartItem.objects.filter(cart=cart_obj)
+        # for items in cat_ofr_obj:
+        #     if not items.product.category.offer_cat.is_expired():
+        #         category_offer_amount += int(items.sub_total_with_category_offer())
+        category_offer_amount = 0
         cat_ofr_obj = CartItem.objects.filter(cart=cart_obj)
-        for items in cat_ofr_obj:
-            if not items.product.category.offer_cat.is_expired():
-                category_offer_amount += int(items.sub_total_with_category_offer())
+
+        # for items in cat_ofr_obj:
+        #     offer_cat = items.product.category.offer_cat
+        #     if offer_cat and not offer_cat.is_expired():
+        #         category_offer_amount += int(items.sub_total_with_category_offer())
 
         if cart_obj.coupon:
+
             discount_amount = offerprice * int(cart_obj.coupon.off_percent) / 100
+            print(discount_amount)
             if offerprice < cart_obj.coupon.min_amount:
                 messages.error(request, f'Minimum amount should be Rs.{cart_obj.coupon.min_amount}')
                 return redirect('checkoutview')
@@ -420,6 +444,25 @@ def checkout_view(request, id):
         grand_total=float(grand_total)
         # grand_total=grand_total * 100
         print(grand_total)
+        context = {
+            'address': address,
+            'cart_items': cart_items,
+            'mrp': mrp,
+            'discount': discount,
+            'tax': tax,
+            'shipping': shipping_cost,
+            'coupon': discount_amount,
+            'grand_total': grand_total,
+            'razorpay_order_id': order_id,
+            'callback': callback,
+            'category_offer_amount': category_offer_amount
+
+        }
+        for item in cart_items:
+            if item.quantity > item.product.stock:
+                messages.error(request,
+                               f'Only {item.product.stock} left for {item.product.variant_name}! Please reduce the quantity in your cart or try again later..')
+                return redirect('checkoutview', context)
         if request.method == "GET":
             # Check if payment failed
             payment_failed = request.GET.get('payment_failed', False)
@@ -428,10 +471,25 @@ def checkout_view(request, id):
                 error_description = request.GET.get('error_description')
                 # Handle the error message accordingly
                 messages.error(request, f"Payment failed. Error code: {error_code}. Description: {error_description}")
+
         if payment_method == 'razorpay':
             order = Order()
             order.user = user
+            order_address = OrderAddress.objects.create(
+                # Assuming your OrderAddress has similar fields to UserAddress
+                user=address.user,
+                name=address.name,
+                alt_mobile=address.alt_mobile,
+                address=address.address,
+                town=address.town,
+                zipcode=address.zipcode,
+                nearby_location=address.nearby_location,
+                district=address.district,
+                state=address.state
+                # Add other fields as necessary
+            )
             order.address = address
+            order.order_address = order_address
             order.subtotal = mrp
             order.order_total = grand_total  # total amount including tax
             order.discount_amount = discount
@@ -499,7 +557,21 @@ def checkout_view(request, id):
                     return redirect('checkoutview', id=id)
             order = Order()
             order.user = user
+            order_address = OrderAddress.objects.create(
+                # Assuming your OrderAddress has similar fields to UserAddress
+                user=address.user,
+                name=address.name,
+                alt_mobile=address.alt_mobile,
+                address=address.address,
+                town=address.town,
+                zipcode=address.zipcode,
+                nearby_location=address.nearby_location,
+                district=address.district,
+                state=address.state
+                # Add other fields as necessary
+            )
             order.address = address
+            order.order_address = order_address
             order.subtotal = mrp
             order.order_total = grand_total  # total amount including tax
             order.discount_amount = discount
